@@ -30,4 +30,10 @@ export default defineManifest({
 		default_path: "src/sidepanel/index.html",
 	},
 	minimum_chrome_version: "148",
+	web_accessible_resources: [
+		{
+			resources: ["src/assets/KwanUnade -Juri Theme Remix.m4a"],
+			matches: ["https://lichess.org/*", "https://chess.com/*"],
+		},
+	],
 });
