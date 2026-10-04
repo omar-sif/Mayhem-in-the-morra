@@ -1,5 +1,14 @@
 console.log("Content script loaded");
 
+const nameElements = document.querySelectorAll("name");
+if (nameElements.length == 2) {
+	chrome.runtime.sendMessage({
+		cmd: "STREAM_GAME",
+		player1: nameElements[0].textContent,
+		player2: nameElements[1].textContent,
+	});
+}
+
 const fenToGrid = (fen: string) => {
 	const grid: string[][] = [];
 	for (const row of fen.split("/")) {
@@ -17,6 +26,9 @@ const fenToGrid = (fen: string) => {
 	}
 	return grid;
 };
+
+//for chesscom we can try to find div with class eco-opening-component, inside of it a span with class eco-opening-name, inner text contains opening name
+// or chess board is custom element wc-chess-board , inside of it divs with class piece bp (color,piece) square-78 (quare-filerow)
 
 //for now it's the smith morra gambit, could be changed to only run on the accepted variation, but this is fine
 const SMITH_MORRA = "rnbqkbnr/pp1ppppp/8/8/3pP3/2P5/PP3PPP/RNBQKBNR";
@@ -83,35 +95,52 @@ const checkIfMorra = (el: Element, orientation: string) => {
 	return true;
 };
 
+// For lichess, since piece positions are determined by their x and y translation, it is orientation sensitive.
+const getBoardOrientation = (board: Element) => {
+	const parent = board.parentElement;
+	if (!parent) {
+		console.error("No parent found ");
+		return;
+	}
+
+	for (const cls of parent.classList) {
+		if (cls.includes("orientation")) {
+			const orientation = cls.split("-")[1];
+			return orientation;
+		}
+	}
+	console.error("Could not find orientation");
+};
+
+let PLAYING_AUDIO = false;
+
+// TODO: this audio element should only be created in lichess or chess.com pages and only once. Actually, we might even put in only once in an offscreen document and play it from there.
+const audio = new Audio(chrome.runtime.getURL("src/assets/KwanUnade -Juri Theme Remix.m4a"));
+
 const boardContainer = document.querySelectorAll("cg-container");
 if (boardContainer.length === 0) {
 	console.log("No boards found");
 } else {
 	console.log("Found board", boardContainer);
-	boardContainer.forEach((el) => {
-		const parent = el.parentElement;
-		if (parent) {
-			for (const cls of parent.classList) {
-				if (cls.includes("orientation")) {
-					const orientation = cls.split("-")[1];
-					if (!["white", "black"].includes(orientation)) {
-						console.error(`Invalid orientation, found: ${orientation}`);
-					} else {
-						const observer = new MutationObserver(() => {
-							checkIfMorra(el, orientation);
-						});
-						observer.observe(el, {
-							subtree: true, // watch descendants too
-							childList: true, // added/removed nodes
-							attributes: true, // attribute changes
-							characterData: true, // text node changes
-						});
-						break;
+	boardContainer.forEach((board) => {
+		const orientation = getBoardOrientation(board);
+		if (orientation !== "black" && orientation !== "white") {
+			console.error(`Invalid orientation, found: ${orientation}`);
+		} else {
+			const observer = new MutationObserver(() => {
+				if (checkIfMorra(board, orientation)) {
+					if (!PLAYING_AUDIO) {
+						audio.play();
+						PLAYING_AUDIO = true;
 					}
 				}
-			}
-		} else {
-			console.log("No parent found");
+			});
+			observer.observe(board, {
+				subtree: true, // watch descendants too
+				childList: true, // added/removed nodes
+				attributes: true, // attribute changes
+				characterData: true, // text node changes
+			});
 		}
 	});
 }
