@@ -157,3 +157,38 @@ const checkIfMorraLichess = (board: Element, orientation: string) => {
 	console.log("Mayhem!!!");
 	return true;
 };
+
+export const checkOpeningExplorer = (cb: () => void) => {
+	const openingContainer = document.body.querySelector("span.eco-opening-name");
+	if (!openingContainer) {
+		// first we need to observe the document body until the container for the opening name (which is the span) to render. Then we need to observe that itself for changes, as the opening name changes as moves are being played. So that needs to be observed independantly
+		const openingContainerObserver = new MutationObserver(() => {
+			const openingContainer = document.body.querySelector("span.eco-opening-name");
+			if (openingContainer) {
+				openingContainerObserver.disconnect();
+				//this one observe the changes in the opening name text
+				const openingNameObserver = new MutationObserver(() => {
+					const smithMorraRegex = /smith[- ]morra/i;
+					if (smithMorraRegex.test(openingContainer.textContent)) {
+						cb();
+					}
+				});
+				openingNameObserver.observe(openingContainer, {
+					characterData: true,
+				});
+			}
+		});
+		openingContainerObserver.observe(document.body, {
+			subtree: true,
+			childList: true,
+		});
+	} else {
+		const openingNameObserver = new MutationObserver(() => {
+			const smithMorraRegex = /smith[- ]morra/i;
+			if (smithMorraRegex.test(openingContainer.textContent)) {
+				cb();
+			}
+		});
+		openingNameObserver.observe(openingContainer, {});
+	}
+};
