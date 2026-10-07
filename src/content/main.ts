@@ -6,10 +6,14 @@ let PLAYING_AUDIO = false;
 // TODO: this audio element should only be created in lichess or chess.com pages and only once. Actually, we might even put in only once in an offscreen document and play it from there.
 const audio = new Audio(chrome.runtime.getURL("src/assets/KwanUnade -Juri Theme Remix.m4a"));
 
-const playMorraTheme = () => {
+const playMorraTheme = async () => {
 	if (PLAYING_AUDIO) return;
-	audio.play();
 	PLAYING_AUDIO = true;
+	try {
+		await audio.play();
+	} catch (e) {
+		stopMorraTheme();
+	}
 };
 
 const stopMorraTheme = () => {
@@ -27,6 +31,9 @@ const main = (site: "chesscom" | "lichess") => {
 		console.error("Board not found");
 		return;
 	}
+	if (checkPosition(site, board)) {
+		playMorraTheme();
+	}
 	const observeBoard = (board: Element) => {
 		const boardObserver = new MutationObserver(() => {
 			const isMorra = checkPosition(site, board);
@@ -40,9 +47,12 @@ const main = (site: "chesscom" | "lichess") => {
 			attributes: true, // attribute changes
 			characterData: true, // text node changes
 		});
+		return () => {
+			boardObserver.disconnect();
+		};
 	};
 
-	observeBoard(board);
+	let cleanup = observeBoard(board);
 	if (site === "lichess") {
 		// lichess needs careful processing, because upon change of board orientation, lichess destroys the current board and board container, and creates new one. Which means that your initial observer is no longer attached to anything.
 		// We need instead to watch this is the element as it contains orientation, and listen to orientation change
@@ -53,10 +63,10 @@ const main = (site: "chesscom" | "lichess") => {
 			for (const mutation of mutations) {
 				if (mutation.type === "attributes") {
 					console.log("Board removed !!!!");
-					// boardObserver.disconnect();
+					cleanup();
 					const newBoard = document.body.querySelector(`${board.tagName}`);
 					// We actually need to figure out if it's null or not rigourously
-					observeBoard(newBoard!);
+					cleanup = observeBoard(newBoard!);
 				}
 			}
 		});
@@ -64,6 +74,7 @@ const main = (site: "chesscom" | "lichess") => {
 			attributes: true,
 			attributeFilter: ["class"],
 		});
+		// TODO maybe cleanup the observers on pagehide
 	}
 	// checkGameEnded(site);
 };
