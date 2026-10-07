@@ -1,7 +1,6 @@
-import { Message } from "@/types";
+import { ListenerCallback, Message } from "@/types";
 
-type ListenerCallback = Parameters<typeof chrome.runtime.onMessage.addListener>[0];
-const messageHandler: ListenerCallback = (message: Message, sender, sendResponse) => {
+const messageHandler: ListenerCallback = (message: Message, _sender, sendResponse) => {
 	switch (message.cmd) {
 		case "GET_SITE":
 			getCurrentTab()

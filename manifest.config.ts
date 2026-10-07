@@ -1,5 +1,5 @@
 import { defineManifest } from "@crxjs/vite-plugin";
-import pkg from "./package.json";
+import pkg from "./package.json" with { type: "json" };
 
 export default defineManifest({
 	manifest_version: 3,
@@ -7,11 +7,11 @@ export default defineManifest({
 	description: pkg.description,
 	version: pkg.version,
 	icons: {
-		48: "public/logo.png",
+		48: "public/logo.jpg",
 	},
 	action: {
 		default_icon: {
-			48: "public/logo.png",
+			48: "public/logo.jpg",
 		},
 		default_popup: "src/popup/index.html",
 	},
@@ -25,10 +25,7 @@ export default defineManifest({
 			matches: ["https://*/*"],
 		},
 	],
-	permissions: ["sidePanel", "contentSettings", "activeTab", "tabs"],
-	side_panel: {
-		default_path: "src/sidepanel/index.html",
-	},
+	permissions: ["contentSettings", "activeTab", "tabs"],
 	minimum_chrome_version: "148",
 	web_accessible_resources: [
 		{

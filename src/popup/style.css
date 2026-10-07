@@ -1,0 +1,64 @@
+:root {
+	font-family: system-ui, sans-serif;
+	color: #f5f5f5;
+	background: #242424;
+	font-synthesis: none;
+	text-rendering: optimizeLegibility;
+}
+
+body {
+	margin: 0;
+	min-width: 280px;
+}
+
+.popup {
+	padding: 1rem;
+}
+
+h1 {
+	margin: 0 0 1rem;
+	font-size: 1.25rem;
+}
+
+.controls {
+	display: flex;
+	gap: 0.5rem;
+}
+
+button {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.25rem;
+	flex: 1;
+	padding: 0.55rem 0.75rem 0.45rem;
+	border: 1px solid #5c5c5c;
+	border-radius: 0.4rem;
+	color: inherit;
+	background: #333;
+	font: inherit;
+	font-size: 0.75rem;
+	cursor: pointer;
+}
+
+.control-icon {
+	width: 1.5rem;
+	height: 1.5rem;
+	fill: currentColor;
+}
+
+button:hover {
+	background: #444;
+}
+
+button:focus-visible {
+	outline: 2px solid #8ba4ff;
+	outline-offset: 2px;
+}
+
+.status {
+	min-height: 1.25rem;
+	margin: 0.75rem 0 0;
+	color: #ffb4ab;
+	font-size: 0.8rem;
+}

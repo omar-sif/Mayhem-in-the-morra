@@ -1,3 +1,4 @@
+import { ListenerCallback, Message } from "@/types";
 import { checkGameEnded, checkOpeningExplorer, checkPosition, findBoard } from "./utils";
 
 console.log("Content script loaded");
@@ -5,6 +6,25 @@ let PLAYING_AUDIO = false;
 
 // TODO: this audio element should only be created in lichess or chess.com pages and only once. Actually, we might even put in only once in an offscreen document and play it from there.
 const audio = new Audio(chrome.runtime.getURL("src/assets/KwanUnade -Juri Theme Remix.m4a"));
+audio.addEventListener("ended", () => {
+	playMorraTheme();
+});
+
+const messageHandler: ListenerCallback = (message: Message, _sender, _sendResponse) => {
+	switch (message.cmd) {
+		case "PLAY_SONG":
+			playMorraTheme();
+			break;
+		case "STOP_SONG":
+			stopMorraTheme();
+			break;
+		case "PAUSE_SONG":
+			pauseMorraTheme();
+			break;
+		default:
+			console.error(`Unknown message, found: ${message.cmd}`);
+	}
+};
 
 const playMorraTheme = async () => {
 	if (PLAYING_AUDIO) return;
@@ -19,6 +39,10 @@ const playMorraTheme = async () => {
 const stopMorraTheme = () => {
 	audio.pause();
 	audio.currentTime = 0;
+	PLAYING_AUDIO = false;
+};
+const pauseMorraTheme = () => {
+	audio.pause();
 	PLAYING_AUDIO = false;
 };
 
@@ -95,4 +119,5 @@ const main = (site: "chesscom" | "lichess") => {
 			main("chesscom");
 		}
 	}
+	chrome.runtime.onMessage.addListener(messageHandler);
 })();
