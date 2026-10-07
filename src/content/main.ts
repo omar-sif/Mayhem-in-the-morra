@@ -1,4 +1,4 @@
-import { checkOpeningExplorer, checkPosition, findBoard } from "./utils";
+import { checkGameEnded, checkOpeningExplorer, checkPosition, findBoard } from "./utils";
 
 console.log("Content script loaded");
 let PLAYING_AUDIO = false;
@@ -76,7 +76,7 @@ const main = (site: "chesscom" | "lichess") => {
 		});
 		// TODO maybe cleanup the observers on pagehide
 	}
-	// checkGameEnded(site);
+	checkGameEnded(site, stopMorraTheme);
 };
 
 (async () => {
@@ -96,12 +96,3 @@ const main = (site: "chesscom" | "lichess") => {
 		}
 	}
 })();
-
-const nameElements = document.querySelectorAll("name");
-if (nameElements.length == 2) {
-	chrome.runtime.sendMessage({
-		cmd: "STREAM_GAME",
-		player1: nameElements[0].textContent,
-		player2: nameElements[1].textContent,
-	});
-}

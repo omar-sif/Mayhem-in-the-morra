@@ -192,3 +192,36 @@ export const checkOpeningExplorer = (cb: () => void) => {
 		openingNameObserver.observe(openingContainer, {});
 	}
 };
+
+const checkGameEndedLichess = (cb: () => void) => {
+	// On lichess div.rcontrols is the section to the right that contains the draw offer, resign, etc. When the game ends, it show rematch, new game, etc. These show under the child element div.follow-up. So we wait for that element to show
+	const observer = new MutationObserver(() => {
+		if (document.body.querySelector("div.follow-up")) {
+			cb();
+			observer.disconnect();
+		}
+	});
+	observer.observe(document.body, {
+		subtree: true,
+		childList: true,
+	});
+};
+
+const checkGameEndedChesscom = (cb: () => void) => {
+	const observer = new MutationObserver(() => {
+		if (document.body.querySelector("div.game-over-modal-shell-container")) {
+			cb();
+			observer.disconnect();
+		}
+	});
+	observer.observe(document.body, {
+		subtree: true,
+		childList: true,
+	});
+};
+
+export const checkGameEnded = (site: "chesscom" | "lichess", cb: () => void) => {
+	if (site === "chesscom") checkGameEndedChesscom(cb);
+
+	if (site === "lichess") checkGameEndedLichess(cb);
+};
